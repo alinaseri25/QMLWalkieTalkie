@@ -9,10 +9,10 @@ Item {
     required property var theme
 
     // ===== State =====
-    property int myId: 0
+    property int myId: 1
     property int sendToId: 255
-    property int inputDeviceIndex: -1
-    property int outputDeviceIndex: -1
+    property int inputDeviceIndex: 0
+    property int outputDeviceIndex: 0
 
     signal applyClicked(int myId, int sendToId, int inputDeviceIndex, int outputDeviceIndex)
     signal cancelClicked()
@@ -84,9 +84,22 @@ Item {
                     }
                     ComboBox {
                         Layout.fillWidth: true
-                        model: []
+                        model: audioBackend.inputDevicesModel
+
+                        // اگر قبلاً چیزی انتخاب نشده
+                        Component.onCompleted: ensureSelection()
+                        onCountChanged: ensureSelection()
+
+                        function ensureSelection() {
+                            if (count > 0 && currentIndex === -1) {
+                                currentIndex = 0
+                                inputDeviceIndex = 0
+                            }
+                        }
+
                         currentIndex: inputDeviceIndex
                         onCurrentIndexChanged: inputDeviceIndex = currentIndex
+                        textRole: "display"
                     }
                 }
 
@@ -100,9 +113,22 @@ Item {
                     }
                     ComboBox {
                         Layout.fillWidth: true
-                        model: []
+                        model: audioBackend.outputDevicesModel
+
+                        // اگر قبلاً چیزی انتخاب نشده
+                        Component.onCompleted: ensureSelection()
+                        onCountChanged: ensureSelection()
+
+                        function ensureSelection() {
+                            if (count > 0 && currentIndex === -1) {
+                                currentIndex = 0
+                                inputDeviceIndex = 0
+                            }
+                        }
+
                         currentIndex: outputDeviceIndex
                         onCurrentIndexChanged: outputDeviceIndex = currentIndex
+                        textRole: "display"
                     }
                 }
 
@@ -118,6 +144,7 @@ Item {
                         from: 0
                         to: 255
                         value: myId
+                        editable: true
                         onValueModified: myId = value
                     }
                 }
@@ -134,6 +161,7 @@ Item {
                         from: 0
                         to: 255
                         value: sendToId
+                        editable: true
                         onValueModified: sendToId = value
                     }
                 }

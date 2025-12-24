@@ -6,10 +6,11 @@
 
 int main(int argc, char *argv[])
 {
-    AudioBackend *audioBackend = new AudioBackend(nullptr);
     QGuiApplication app(argc, argv);
 
-    QQuickStyle::setStyle("Material");
+    AudioBackend *audioBackend = new AudioBackend(nullptr);
+
+    QQuickStyle::setStyle("Fusion");
 
     QQmlApplicationEngine engine;
 

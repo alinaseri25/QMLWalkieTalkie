@@ -23,6 +23,8 @@ ApplicationWindow {
         int inputDeviceIndex,
         int outputDeviceIndex
     )
+    signal startSend()
+    signal stopSend()
 
     /* ========= STATE ========= */
     property bool handsFree: false
@@ -75,11 +77,17 @@ ApplicationWindow {
 
                 onPressed: {
                     if (!handsFree)
+                    {
                         pttPressed = true
+                        startSend()
+                    }
                 }
                 onReleased: {
                     if (!handsFree)
+                    {
                         pttPressed = false
+                        stopSend()
+                    }
                 }
                 onCanceled: {
                     if (!handsFree)
@@ -119,6 +127,14 @@ ApplicationWindow {
                     handsFree = checked
                     pttPressed = false
                     handsFreeLatched = false
+                    if(handsFree)
+                    {
+                        startSend()
+                    }
+                    else
+                    {
+                        stopSend()
+                    }
                 }
             }
         }
@@ -169,6 +185,8 @@ ApplicationWindow {
 
     Component.onCompleted: {
         settingapplied.connect(audioBackend.onSettingapplied)
+        startSend.connect(audioBackend.onStartSend)
+        stopSend.connect(audioBackend.onStopSend)
     }
 
     Connections {
