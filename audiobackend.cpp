@@ -248,14 +248,42 @@ void AudioBackend::createAudioOutput()
 
 void AudioBackend::onUDPReadyRead()
 {
-    AudioPacket pack;
+    //AudioPacket pack;
     if(!Server->hasPendingDatagrams())
         return;
     int size = Server->pendingDatagramSize();
-    Server->readDatagram((char *)(&pack),size);
-    if(pack.SenderId == CurrentID)
+
+    //Server->readDatagram((char *)(&pack),size);
+    QByteArray buffer;
+    sizeHeader *bufferheader;
+    buffer.resize(size);
+    Server->readDatagram(buffer.data(),size);
+    //qDebug() << "RCV Buffer Size : " << buffer.size();
+    bufferheader = (sizeHeader*)buffer.data();
+
+    QByteArray jsonData = buffer.mid(sizeof(sizeHeader) ,bufferheader->jsonSize);
+    QByteArray payload = buffer.mid((sizeof(sizeHeader) + bufferheader->jsonSize ), bufferheader->bufferSize);
+
+    QJsonParseError err;
+    QJsonDocument doc = QJsonDocument::fromJson(jsonData, &err);
+
+    if (err.error != QJsonParseError::NoError)
+    {
+        qWarning() << "json data : " << jsonData << "JSON parse error:" << err.errorString();
         return;
-    if(pack.RecipientGP == 255 || pack.RecipientGP == _myId)
+    }
+
+    QJsonObject obj = doc.object();
+
+    // if(pack.SenderId == CurrentID)
+    //     return;
+    if(obj["senderID"].toString() == QString::number(CurrentID))
+    {
+        return;
+    }
+
+    //if(pack.RecipientGP == 255 || pack.RecipientGP == _myId)
+    if(obj["recipientGP"].toString() == QString("255") || obj["recipientGP"].toString() == QString::number(_myId))
     {
         if(m_output != NULL)
         {
@@ -274,17 +302,20 @@ void AudioBackend::onUDPReadyRead()
 
             if (!needConvert)
             {
+                qDebug() << "direct Sound";
                 // مستقیماً بنویس چون فرمت یکیه
-                outData = QByteArray((char*)pack.Data, BufferSize);
+                outData = payload;//QByteArray((char*)pack.Data, BufferSize);
             }
             else
             {
+                qDebug() << "converted Sound";
                 // ---- تبدیل UInt8 -> Int16 ----
                 QByteArray tmp;
-                tmp.resize(BufferSize * 2);
+                tmp.resize(bufferheader->bufferSize * 2);
                 int16_t* dst = reinterpret_cast<int16_t*>(tmp.data());
-                const uint8_t* src = reinterpret_cast<const uint8_t*>(pack.Data);
-                for (int i = 0; i < BufferSize; ++i)
+                //const uint8_t* src = reinterpret_cast<const uint8_t*>(pack.Data);
+                const uint8_t* src = reinterpret_cast<const uint8_t*>(payload.data());
+                for (int i = 0; i < bufferheader->bufferSize; ++i)
                     dst[i] = ((int16_t)src[i] - 128) << 8;
 
                 // ---- SampleRate fix: 16000 -> 48000 (3x upsample) ----
@@ -292,7 +323,7 @@ void AudioBackend::onUDPReadyRead()
                 upsampled.resize(tmp.size() * 3);
                 int16_t* up = reinterpret_cast<int16_t*>(upsampled.data());
                 const int16_t* in = reinterpret_cast<const int16_t*>(tmp.data());
-                int sampleCount = BufferSize;
+                int sampleCount = bufferheader->bufferSize;
 
                 for (int i = 0; i < sampleCount; ++i)
                 {
@@ -321,6 +352,11 @@ void AudioBackend::onUDPReadyRead()
                     outData = upsampled;
                 }
             }
+            int frameSize = outFmt.channelCount() * (outFmt.sampleFormat() == QAudioFormat::Int16 ? 2 : 1);
+
+            qDebug() << "outData size =" << outData.size()
+                     << "frameSize =" << frameSize
+                     << "mod =" << (outData.size() % frameSize);
             m_output->write(outData);
         }
         else
@@ -330,7 +366,8 @@ void AudioBackend::onUDPReadyRead()
     }
     else
     {
-        qDebug() << QString("pack.Recipient : %1 - pack.Sender : %2").arg(pack.RecipientGP).arg(pack.SenderGP);
+        //qDebug() << QString("pack.Recipient : %1 - pack.Sender : %2").arg(pack.RecipientGP).arg(pack.SenderGP);
+        qDebug() << QString("pack.Recipient : %1 - pack.Sender : %2").arg(obj["recipientGP"].toString()).arg(obj["senderGP"].toString());
     }
 }
 
@@ -340,15 +377,34 @@ void AudioBackend::onReadInput()
     {
         return;
     }
+    // if(m_input->bytesAvailable() > BufferSize)
+    // {
+    //     QByteArray Buffer = m_input->read(BufferSize);
+    //     AudioPacket packet;
+    //     packet.SenderId = CurrentID;
+    //     packet.RecipientGP = _sendToId;
+    //     packet.SenderGP = _myId;
+    //     memcpy(packet.Data,Buffer.data(),BufferSize);
+    //     QByteArray Datagram((char *)(&packet),sizeof(AudioPacket));
+    //     Client->writeDatagram(Datagram,QHostAddress::Broadcast,PortNumber);
+    // }
     if(m_input->bytesAvailable() > BufferSize)
     {
-        QByteArray Buffer = m_input->read(BufferSize);
-        AudioPacket packet;
-        packet.SenderId = CurrentID;
-        packet.RecipientGP = _sendToId;
-        packet.SenderGP = _myId;
-        memcpy(packet.Data,Buffer.data(),BufferSize);
-        QByteArray Datagram((char *)(&packet),sizeof(AudioPacket));
-        Client->writeDatagram(Datagram,QHostAddress::Broadcast,PortNumber);
+        QByteArray Buffer;// = m_input->readAll();
+        QJsonObject header;
+        header["senderID"] = QString::number(CurrentID);
+        header["senderGP"] = QString::number(_myId);
+        header["recipientID"] = QString("0");
+        header["recipientGP"] = QString::number(_sendToId);
+        QJsonDocument doc(header);
+        sizeHeader bufferheader;
+        bufferheader.jsonSize = doc.toJson(QJsonDocument::Compact).size();
+        bufferheader.bufferSize = m_input->bytesAvailable();//(sizeof(sizeHeader) + bufferheader.jsonSize + m_input->bytesAvailable());
+        Buffer.append((char *)&bufferheader,sizeof(sizeHeader));
+        int test = Buffer.size();
+        Buffer.append(doc.toJson(QJsonDocument::Compact));
+        Buffer.append(m_input->read(bufferheader.bufferSize));
+        //qDebug() << "SEND : " << Buffer.size();
+        Client->writeDatagram(Buffer,QHostAddress::Broadcast,PortNumber);
     }
 }

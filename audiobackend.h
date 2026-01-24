@@ -8,17 +8,19 @@
 #ifdef Q_OS_ANDROID
     #include <QJniObject>
 #endif
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonParseError>
 
-#define BufferSize 1024
+#define BufferSize 2048
 #define PortNumber 1255
 
 typedef struct
 {
-    uint64_t SenderId;
-    uint32_t SenderGP;
-    uint32_t RecipientGP;
-    uint8_t Data[BufferSize];
-}AudioPacket;
+    uint32_t jsonSize;
+    uint32_t bufferSize;
+}sizeHeader;
 
 class AudioBackend : public QObject
 {
