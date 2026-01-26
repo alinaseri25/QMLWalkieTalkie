@@ -91,7 +91,7 @@ void AudioBackend::onSettingapplied(int myId, int sendToId, int inputDeviceIndex
 
 void AudioBackend::onStartSend()
 {
-    initializeAudio();
+    //initializeAudio();
     m_input = m_audioInput->start();
     m_audioInput->setBufferSize(BufferSize);
     connect(m_input,&QIODevice::readyRead,this,&AudioBackend::onReadInput);
@@ -144,6 +144,12 @@ void AudioBackend::acquireMulticastLock()
         1, QJniObject::fromString("MyWakeLock").object<jstring>()
         );
     g_wakeLock.callMethod<void>("acquire");
+
+    // QJniObject activity = QNativeInterface::QAndroidApplication::context();
+    // activity.callMethod<void>("requestPermissions",
+    //                           "([Ljava/lang/String;I)V",
+    //                           QJniObject::fromString("android.permission.RECORD_AUDIO").object<jstring>(),
+    //                           100);
 #endif
 }
 
@@ -208,31 +214,40 @@ void AudioBackend::initializeAudio()
 {
     m_format.setSampleRate(16000);
     m_format.setChannelCount(1); //set channels to mono
-    m_format.setSampleFormat(QAudioFormat::UInt8); //set sample size to 16 bit
+    m_format.setSampleFormat(QAudioFormat::Int16); //set sample size to 16 bit
 
     m_formatSample = m_format;
 
     qDebug() << QString("m_format : sample rate : %1 , channel count : %2 , audio Format : %3 ")
                     .arg(m_format.sampleRate()).arg(m_format.channelCount()).arg(m_format.sampleFormat());
 
-    m_Inputdevice = QMediaDevices::audioInputs().at(_inputDeviceIndex);
-    m_Outputdevice = QMediaDevices::audioOutputs().at(_outputDeviceIndex);
-
-    if(!m_Inputdevice.isFormatSupported(m_format))
+    if(m_Inputdevice != QMediaDevices::audioInputs().at(_inputDeviceIndex))
     {
-        m_format = m_Inputdevice.preferredFormat();
-        qDebug() << QString("m_Inputdevice Replaced with preferredFormat(); sample rate : %1 , channel count : %2 , audio Format : %3 ")
-                        .arg(m_format.sampleRate()).arg(m_format.channelCount()).arg(m_format.sampleFormat());
-    }
-    createAudioInput();
+        m_Inputdevice = QMediaDevices::audioInputs().at(_inputDeviceIndex);
 
-    if(!m_Outputdevice.isFormatSupported(m_format))
-    {
-        m_format = m_Inputdevice.preferredFormat();
-        qDebug() << QString("m_Outputdevice Replaced with preferredFormat(); sample rate : %1 , channel count : %2 , audio Format : %3 ")
-                        .arg(m_format.sampleRate()).arg(m_format.channelCount()).arg(m_format.sampleFormat());
+
+        //m_Inputdevice.supportedSampleFormats()
+
+        if(!m_Inputdevice.isFormatSupported(m_format))
+        {
+            m_format = m_Inputdevice.preferredFormat();
+            qDebug() << QString("m_Inputdevice Replaced with preferredFormat(); sample rate : %1 , channel count : %2 , audio Format : %3 ")
+                            .arg(m_format.sampleRate()).arg(m_format.channelCount()).arg(m_format.sampleFormat());
+        }
+        createAudioInput();
     }
-    createAudioOutput();
+
+    if(m_Outputdevice != QMediaDevices::audioOutputs().at(_outputDeviceIndex))
+    {
+        m_Outputdevice = QMediaDevices::audioOutputs().at(_outputDeviceIndex);
+        if(!m_Outputdevice.isFormatSupported(m_format))
+        {
+            m_format = m_Inputdevice.preferredFormat();
+            qDebug() << QString("m_Outputdevice Replaced with preferredFormat(); sample rate : %1 , channel count : %2 , audio Format : %3 ")
+                            .arg(m_format.sampleRate()).arg(m_format.channelCount()).arg(m_format.sampleFormat());
+        }
+        createAudioOutput();
+    }
 }
 
 void AudioBackend::createAudioInput()
@@ -243,6 +258,7 @@ void AudioBackend::createAudioInput()
 void AudioBackend::createAudioOutput()
 {
     m_audioOutput = new QAudioSink(m_Outputdevice, m_format, this);
+    m_audioOutput->setBufferSize(BufferSize);
     m_output = m_audioOutput->start();
 }
 
@@ -302,62 +318,23 @@ void AudioBackend::onUDPReadyRead()
 
             if (!needConvert)
             {
-                qDebug() << "direct Sound";
+                //qDebug() << QString("Json Data : %1").arg(doc.toJson());
                 // مستقیماً بنویس چون فرمت یکیه
                 outData = payload;//QByteArray((char*)pack.Data, BufferSize);
             }
             else
             {
-                qDebug() << "converted Sound";
-                // ---- تبدیل UInt8 -> Int16 ----
-                QByteArray tmp;
-                tmp.resize(bufferheader->bufferSize * 2);
-                int16_t* dst = reinterpret_cast<int16_t*>(tmp.data());
-                //const uint8_t* src = reinterpret_cast<const uint8_t*>(pack.Data);
-                const uint8_t* src = reinterpret_cast<const uint8_t*>(payload.data());
-                for (int i = 0; i < bufferheader->bufferSize; ++i)
-                    dst[i] = ((int16_t)src[i] - 128) << 8;
-
-                // ---- SampleRate fix: 16000 -> 48000 (3x upsample) ----
-                QByteArray upsampled;
-                upsampled.resize(tmp.size() * 3);
-                int16_t* up = reinterpret_cast<int16_t*>(upsampled.data());
-                const int16_t* in = reinterpret_cast<const int16_t*>(tmp.data());
-                int sampleCount = bufferheader->bufferSize;
-
-                for (int i = 0; i < sampleCount; ++i)
-                {
-                    up[3*i]   = in[i];
-                    up[3*i+1] = in[i];
-                    up[3*i+2] = in[i];
-                }
-
-                // ---- تبدیل از Mono به Stereo اگر لازم بود ----
-                if (outFmt.channelCount() == 2)
-                {
-                    QByteArray stereo;
-                    stereo.resize(upsampled.size() * 2);
-                    int16_t* out = reinterpret_cast<int16_t*>(stereo.data());
-                    const int16_t* src16 = reinterpret_cast<const int16_t*>(upsampled.constData());
-                    int count = sampleCount * 3;
-                    for (int i = 0; i < count; ++i)
-                    {
-                        out[2*i]   = src16[i];
-                        out[2*i+1] = src16[i];
-                    }
-                    outData = stereo;
-                }
-                else
-                {
-                    outData = upsampled;
-                }
+                qDebug() << "Current sound not supported!";
+                return;
             }
-            int frameSize = outFmt.channelCount() * (outFmt.sampleFormat() == QAudioFormat::Int16 ? 2 : 1);
-
-            qDebug() << "outData size =" << outData.size()
-                     << "frameSize =" << frameSize
-                     << "mod =" << (outData.size() % frameSize);
             m_output->write(outData);
+            if (m_audioOutput->error() != QAudio::NoError) {
+                qWarning() << "Audio Error:" << m_audioOutput->error();
+            }
+            if(m_audioOutput->state() != QAudio::ActiveState)
+            {
+                m_audioOutput->start();
+            }
         }
         else
         {
@@ -404,7 +381,6 @@ void AudioBackend::onReadInput()
         int test = Buffer.size();
         Buffer.append(doc.toJson(QJsonDocument::Compact));
         Buffer.append(m_input->read(bufferheader.bufferSize));
-        //qDebug() << "SEND : " << Buffer.size();
         Client->writeDatagram(Buffer,QHostAddress::Broadcast,PortNumber);
     }
 }

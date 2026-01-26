@@ -13,7 +13,7 @@
 #include <QJsonArray>
 #include <QJsonParseError>
 
-#define BufferSize 2048
+#define BufferSize 3000
 #define PortNumber 1255
 
 typedef struct
