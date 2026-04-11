@@ -1,5 +1,6 @@
 buildscript {
     repositories {
+        maven {url 'https://maven.myket.ir'}
         google()
         mavenCentral()
     }
@@ -11,6 +12,7 @@ buildscript {
 }
 
 repositories {
+    maven {url 'https://maven.myket.ir'}
     google()
     mavenCentral()
 }
@@ -62,13 +64,13 @@ android {
 
     compileOptions {
         // ✅ سازگار با JDK 17
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
 
     kotlinOptions {
         // ✅ هم‌راستا با Java
-        jvmTarget = '17'
+        jvmTarget = '21'
     }
 
     defaultConfig {

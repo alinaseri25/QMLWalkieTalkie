@@ -12,15 +12,14 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonParseError>
+#include <QTimer>
+
+#include <packetStructs.h>
+#include <version.h>
 
 #define BufferSize 3000
 #define PortNumber 1255
-
-typedef struct
-{
-    uint32_t jsonSize;
-    uint32_t bufferSize;
-}sizeHeader;
+#define maxBufferSize 100000
 
 class AudioBackend : public QObject
 {
@@ -44,11 +43,15 @@ public:
 signals:
     void setWindowsTittle(QString Tittle);
     void devicesChanged();
+    void newVersionFound(uint32_t versionCode);
+    void debugMessage(bool _state,const QString &_message);
+    void newTextMessage(QString _msg);
 
 public slots:
-    void onSettingapplied(int myId,int sendToId,int inputDeviceIndex,int outputDeviceIndex);
+    void onSettingapplied(int myId,int sendToId,int inputDeviceIndex,int outputDeviceIndex,int outputBufferSize);
     void onStartSend();
     void onStopSend();
+    void onSendMessage(QString _msg);
 
 private:
     void acquireMulticastLock(void);
@@ -58,6 +61,12 @@ private:
     void initializeAudio(void);
     void createAudioInput(void);
     void createAudioOutput(void);
+    void processBuffer(void);
+
+    QByteArray buffer;
+    QList<QByteArray> packets;
+    QTimer processPacketsTimer;
+    uint32_t latestVersion = 0;
 
     const char* cls = "org/verya/QMLWalkieTalkie/TestBridge";
     QStringListModel m_inputDevices;
@@ -65,18 +74,19 @@ private:
 
     QUdpSocket *Server = nullptr;
     QUdpSocket *Client = nullptr;
+    QHostAddress multicastAddress;
 
-    int _myId,_sendToId,_inputDeviceIndex,_outputDeviceIndex;
+    int _myId,_sendToId,_inputDeviceIndex,_outputDeviceIndex,_bufferSize;
 
-    QAudioFormat m_format,m_formatSample;
+    QAudioFormat m_format;
     QAudioDevice m_Inputdevice;
     QAudioDevice m_Outputdevice;
 
-    QAudioSource *m_audioInput;
-    QAudioSink *m_audioOutput;
+    QAudioSource *m_audioInput = nullptr;
+    QAudioSink *m_audioOutput = nullptr;
 
-    QIODevice *m_input;
-    QIODevice *m_output;
+    QIODevice *m_input = nullptr;
+    QIODevice *m_output = nullptr;
 
     uint64_t CurrentID;
 
@@ -89,6 +99,9 @@ private:
 private slots:
     void onUDPReadyRead(void);
     void onReadInput(void);
+    void onProcessPacketsTimerTimeout(void);
+    void handleInputError(QAudio::Error err);
+    void handleOutputError(QAudio::Error err);
 };
 
 #endif // AUDIOBACKEND_H

@@ -2,6 +2,9 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
+import "../components"
+
+
 Item {
     id: root
     anchors.fill: parent
@@ -13,14 +16,15 @@ Item {
     property int sendToId: 255
     property int inputDeviceIndex: 0
     property int outputDeviceIndex: 0
+    property int outputBufferSize: 1024
 
-    signal applyClicked(int myId, int sendToId, int inputDeviceIndex, int outputDeviceIndex)
+    signal applyClicked(int myId, int sendToId, int inputDeviceIndex, int outputDeviceIndex, int outputBufferSize)
     signal cancelClicked()
 
     // ===== Card =====
     Rectangle {
         anchors.fill: parent
-        radius: theme.radius
+        radius: theme.radius.md
         color: theme.surface
         border.color: theme.border
         border.width: 1
@@ -37,32 +41,33 @@ Item {
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: theme.spacing
+                    anchors.margins: theme.spacing.sm
 
                     Text {
                         text: "Settings"
-                        font.pixelSize: theme.fontSizeLarge
+                        font.pixelSize: theme.fontSize.md
                         font.bold: true
-                        color: theme.text
+                        color: theme.textPrimary
                         Layout.fillWidth: true
                     }
 
-                    Button {
-                        text: "✕"
-                        flat: true
-                        onClicked: root.cancelClicked()
+                    // CButton {
+                    //     text: "✕"
+                    //     theme: root.theme
+                    //     Layout.fillWidth: true
+                    //     onClicked: root.cancelClicked()
 
-                        contentItem: Item {
-                            anchors.fill: parent
+                    //     // contentItem: Item {
+                    //     //     anchors.fill: parent
 
-                            Text {
-                                text: "✕"
-                                anchors.centerIn: parent
-                                font.pixelSize: theme.fontSizeLarge
-                                color: theme.text
-                            }
-                        }
-                    }
+                    //     //     Text {
+                    //     //         text: "✕"
+                    //     //         anchors.centerIn: parent
+                    //     //         font.pixelSize: theme.fontSize.md
+                    //     //         color: theme.textPrimary
+                    //     //     }
+                    //     // }
+                    // }
 
                 }
             }
@@ -71,16 +76,16 @@ Item {
             ColumnLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.margins: theme.spacingLarge
-                spacing: theme.spacingLarge
+                Layout.margins: theme.spacing.md
+                spacing: theme.spacing.md
 
                 // Audio Input
                 ColumnLayout {
-                    spacing: theme.spacingSmall
+                    spacing: theme.spacing.xs
                     Text {
                         text: "Audio Input Source"
                         color: theme.textSecondary
-                        font.pixelSize: theme.fontSizeSmall
+                        font.pixelSize: theme.fontSize.xs
                     }
                     ComboBox {
                         Layout.fillWidth: true
@@ -105,11 +110,11 @@ Item {
 
                 // Audio Output
                 ColumnLayout {
-                    spacing: theme.spacingSmall
+                    spacing: theme.spacing.xs
                     Text {
                         text: "Audio Output Device"
                         color: theme.textSecondary
-                        font.pixelSize: theme.fontSizeSmall
+                        font.pixelSize: theme.fontSize.xs
                     }
                     ComboBox {
                         Layout.fillWidth: true
@@ -134,11 +139,11 @@ Item {
 
                 // My ID
                 ColumnLayout {
-                    spacing: theme.spacingSmall
+                    spacing: theme.spacing.xs
                     Text {
                         text: "My ID"
                         color: theme.textSecondary
-                        font.pixelSize: theme.fontSizeSmall
+                        font.pixelSize: theme.fontSize.xs
                     }
                     SpinBox {
                         from: 0
@@ -151,11 +156,11 @@ Item {
 
                 // Send To ID
                 ColumnLayout {
-                    spacing: theme.spacingSmall
+                    spacing: theme.spacing.xs
                     Text {
                         text: "Send To ID"
                         color: theme.textSecondary
-                        font.pixelSize: theme.fontSizeSmall
+                        font.pixelSize: theme.fontSize.xs
                     }
                     SpinBox {
                         from: 0
@@ -163,6 +168,36 @@ Item {
                         value: sendToId
                         editable: true
                         onValueModified: sendToId = value
+                    }
+                }
+
+                // Buffer Size
+                ColumnLayout {
+                    spacing: theme.spacing.xs
+                    Text {
+                        text: "Audio Output Buffer"
+                        color: theme.textSecondary
+                        font.pixelSize: theme.fontSize.xs
+                    }
+                    ComboBox {
+                        Layout.fillWidth: true
+                        model: [
+                            { text: "1KB", value: 1024 },
+                            { text: "2KB", value: 2048 },
+                            { text: "3KB", value: 3072 }
+                        ]
+
+                        Component.onCompleted: {
+                            if (currentIndex === -1)
+                                currentIndex = 0
+                            outputBufferSize = model[currentIndex].value
+                        }
+
+                        onCurrentIndexChanged: {
+                            if (currentIndex >= 0)
+                                outputBufferSize = model[currentIndex].value
+                        }
+                        textRole: "text"
                     }
                 }
             }
@@ -187,23 +222,26 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        Layout.margins: theme.spacing
-                        spacing: theme.spacing
+                        Layout.margins: theme.spacing.sm
+                        spacing: theme.spacing.sm
 
-                        Button {
+                        CButton {
                             text: "Cancel"
+                            theme: root.theme
                             Layout.fillWidth: true
                             onClicked: root.cancelClicked()
                         }
 
-                        Button {
+                        CButton {
                             text: "Apply"
+                            theme: root.theme
                             Layout.fillWidth: true
                             onClicked: root.applyClicked(
                                 myId,
                                 sendToId,
                                 inputDeviceIndex,
-                                outputDeviceIndex
+                                outputDeviceIndex,
+                                outputBufferSize
                             )
                         }
                     }

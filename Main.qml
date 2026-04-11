@@ -13,6 +13,10 @@ ApplicationWindow {
 
     Theme { id: appTheme }
 
+    ListModel {
+        id: chatModel
+    }
+
     background: Rectangle {
         color: appTheme.background
     }
@@ -21,10 +25,13 @@ ApplicationWindow {
         int myId,
         int sendToId,
         int inputDeviceIndex,
-        int outputDeviceIndex
+        int outputDeviceIndex,
+        int outputBufferSize
     )
     signal startSend()
     signal stopSend()
+
+    signal sendMessage(string msg)
 
     /* ========= STATE ========= */
     property bool handsFree: false
@@ -52,10 +59,13 @@ ApplicationWindow {
         anchors.right: parent.right
 
         Rectangle {
+            id: pttButton
             width: 200
             height: 200
             radius: 100
-            anchors.centerIn: parent
+            anchors.top: parent.top
+            anchors.topMargin: 20
+            anchors.horizontalCenter: parent.horizontalCenter
 
             color: transmitting
                 ? appTheme.accentRed
@@ -68,7 +78,7 @@ ApplicationWindow {
                 anchors.centerIn: parent
                 text: transmitting ? "TRANSMITTING" : "PUSH TO TALK"
                 color: transmitting ? "white" : "black"
-                font.pixelSize: appTheme.fontSizeMedium
+                font.pixelSize: appTheme.fontSize.sm
                 font.bold: true
             }
 
@@ -99,6 +109,96 @@ ApplicationWindow {
                 }
             }
         }
+
+        // بخش چت
+        Column {
+            anchors.top: pttButton.bottom
+            anchors.topMargin: 20
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.margins: appTheme.spacing.sm
+            spacing: 10
+
+            // نمایش پیام‌ها (readonly)
+            Rectangle {
+                id: rcvSpace
+                width: parent.width
+                height: parent.height - 70
+                color: appTheme.surface
+                border.color: appTheme.border
+                border.width: 1
+                radius: appTheme.radius.md
+
+                ListView {
+                    id: chatListView
+                    anchors.fill: parent
+                    anchors.margins: 8
+                    clip: true
+                    model: chatModel
+                    spacing: appTheme.spacing.sm
+
+                    delegate: Rectangle {
+                        width: chatListView.width
+                        radius: 8
+                        color: appTheme.surface
+                        border.color: appTheme.border
+                        border.width: 1
+
+                        implicitHeight: messageText.implicitHeight + 16
+
+                        Text {
+                            id: messageText
+                            anchors.fill: parent
+                            anchors.margins: 8
+
+                            text: model.message
+                            textFormat: Text.RichText
+                            wrapMode: Text.Wrap
+                            font.pixelSize: appTheme.fontSize.sm
+                            color: appTheme.textPrimary
+                        }
+                    }
+                }
+            }
+
+            // ورودی پیام + دکمه ارسال
+            Row {
+                width: parent.width
+                spacing: 10
+
+
+                Rectangle {
+                    width: parent.width - 80
+                    height: 60
+                    color: appTheme.surface
+                    border.color: appTheme.border
+                    border.width: 1
+                    radius: appTheme.radius.md
+
+                    CTextField{
+                        id: messageInput
+                        theme: appTheme
+                        anchors.fill: parent
+                        anchors.margins: 8
+                        placeholderText: qsTr("پیام...")
+                    }
+                }
+
+                CButton {
+                    theme: appTheme
+                    text: qsTr("ارسال")
+                    width: 70
+                    height: 60
+                    onClicked: {
+                        if (messageInput.text.trim().length > 0) {
+                            sendMessage(messageInput.text)
+                            messageInput.text = ""
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /* ========= FOOTER ========= */
@@ -113,12 +213,12 @@ ApplicationWindow {
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: appTheme.spacing
+            anchors.margins: appTheme.spacing.sm
 
             Text {
                 text: "Hands‑Free"
                 Layout.fillWidth: true
-                color: appTheme.text
+                color: appTheme.textPrimary
             }
 
             Switch {
@@ -158,7 +258,7 @@ ApplicationWindow {
         // ✅ background واقعی Dialog
         background: Rectangle {
             color: appTheme.surface
-            radius: appTheme.radius
+            radius: appTheme.radius.md
             border.color: appTheme.border
             border.width: 1
         }
@@ -176,23 +276,43 @@ ApplicationWindow {
                     myId,
                     sendToId,
                     inputDeviceIndex,
-                    outputDeviceIndex
+                    outputDeviceIndex,
+                    outputBufferSize
                 )
                 settingsDialog.close()
             }
         }
     }
 
+    Toast {
+        id: reportToast
+        themeManager: appTheme
+    }
+
     Component.onCompleted: {
         settingapplied.connect(audioBackend.onSettingapplied)
         startSend.connect(audioBackend.onStartSend)
         stopSend.connect(audioBackend.onStopSend)
+        sendMessage.connect(audioBackend.onSendMessage)
     }
 
     Connections {
         target: audioBackend
+
         function onSetWindowsTittle(_Tittle) {
             title = _Tittle
+        }
+
+        function onNewVersionFound(_versionCode){
+            reportToast.showMessage(false,"New Version founded\r\nVersion : " + _versionCode)
+        }
+
+        function onNewTextMessage(_msg){
+            chatModel.insert(0,{message: _msg})
+        }
+
+        function onDebugMessage(_state,_msg){
+            reportToast.showMessage(_state,_msg)
         }
     }
 }

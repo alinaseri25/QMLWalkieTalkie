@@ -1,45 +1,3 @@
-// import QtQuick
-
-// QtObject {
-//     /* ===== Layout / Direction ===== */
-//     readonly property bool isRTL: true   // برای WalkieHeader
-
-//     /* ===== Modes ===== */
-//     property bool isDarkMode: true
-
-//     /* ===== Base Colors ===== */
-//     readonly property color background: "#121212"
-//     readonly property color surface: "#1E1E1E"
-//     readonly property color text: "#FFFFFF"
-//     readonly property color textSecondary: "#9E9E9E"
-//     readonly property color border: "#2C2C2C"
-
-//     /* ===== Accent Colors ===== */
-//     readonly property color accentYellow: "#FBC02D"
-//     readonly property color accentRed: "#D32F2F"
-//     readonly property color accentOrange: "#FF9800"   // ✅ استفاده در Main.qml
-//     readonly property color hoverColor: "#2A2A2A"     // ✅ WalkieHeader
-
-//     /* ===== Spacing ===== */
-//     readonly property int spacing: 16
-//     readonly property int spacingLarge: 24
-//     readonly property int spacingSmall: 8
-
-//     /* ===== Radius & Sizes ===== */
-//     readonly property int radius: 12
-//     readonly property int headerHeight: 56
-
-//     /* ===== Fonts (Canonical) ===== */
-//     readonly property int fontSmall: 12
-//     readonly property int fontMedium: 14
-//     readonly property int fontLarge: 18
-
-//     /* ===== Fonts (Aliases — VERY IMPORTANT) ===== */
-//     // چون در QML های مختلف از این نام‌ها استفاده شده
-//     readonly property int fontSizeSmall: fontSmall
-//     readonly property int fontSizeMedium: fontMedium
-//     readonly property int fontSizeLarge: fontLarge
-// }
 import QtQuick
 
 QtObject {
@@ -47,32 +5,77 @@ QtObject {
     property bool isDarkMode: true
     property bool isRTL: false
 
+    readonly property int headerHeight: 48
+
+    /* TEXT */
+
+    readonly property color textPrimary: isDarkMode ? "#ffffff" : "#1a1a1a"
+    readonly property color textSecondary: isDarkMode ? "#aaaaaa" : "#666666"
+    readonly property color textOnAccent: "#ffffff"
+
     // ===== Colors =====
     readonly property color background: "#121212"
     readonly property color surface: "#1E1E1E"
     readonly property color surfaceAlt: "#242424"
 
-    readonly property color text: "#FFFFFF"
-    readonly property color textSecondary: "#9E9E9E"
-
-    readonly property color accent: "#E0E0E0"
+    readonly property color accent: "#3daee9"
+    readonly property color error: "#ff4d4d"
     readonly property color accentOrange: "#FF9800"
     readonly property color accentRed: "#D32F2F"
 
     readonly property color border: "#2C2C2C"
     readonly property color hoverColor: "#2A2A2A"
 
-    // ===== Spacing =====
-    readonly property int spacingSmall: 1
-    readonly property int spacing: 8
-    readonly property int spacingLarge: 12
+    /* SPACING */
 
-    // ===== Sizes =====
-    readonly property int radius: 12
-    readonly property int headerHeight: 48
+    readonly property QtObject spacing: QtObject {
 
-    // ===== Fonts =====
-    readonly property int fontSizeSmall: 10
-    readonly property int fontSizeMedium: 12
-    readonly property int fontSizeLarge: 14
+        readonly property int xs: 1
+        readonly property int sm: 8
+        readonly property int md: 12
+        readonly property int lg: 16
+        readonly property int xl: 24
+        readonly property int xxl: 32
+    }
+
+    /* RADIUS */
+
+    readonly property QtObject radius: QtObject {
+
+            readonly property int sm: 6
+            readonly property int md: 12
+            readonly property int lg: 14
+            readonly property int xl: 18
+    }
+
+    /* FONT SIZE */
+
+    readonly property QtObject fontSize: QtObject {
+
+        readonly property int xs: 10
+        readonly property int sm: 12
+        readonly property int md: 14
+        readonly property int lg: 18
+        readonly property int xl: 24
+    }
+
+    /* MOTION */
+
+    readonly property QtObject motion: QtObject {
+
+        readonly property int fast: 120
+        readonly property int normal: 180
+        readonly property int slow: 260
+    }
+
+    /* CONTROL */
+
+    readonly property QtObject control: QtObject {
+
+        readonly property int heightSmall: 32
+        readonly property int heightMedium: 40
+        readonly property int heightLarge: 44
+    }
 }
+
+
