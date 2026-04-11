@@ -487,6 +487,8 @@ void AudioBackend::onProcessPacketsTimerTimeout()
         QByteArray jsonData = packets.first().mid(sizeof(DataHeader) ,bufferheader->jsonSize);
         QByteArray payload = packets.first().mid((sizeof(DataHeader) + bufferheader->jsonSize ), bufferheader->payloadSize);
         packets.removeFirst();
+        // qDebug() << "jsonData : " << jsonData;
+        // qDebug() << QString("payloadSize : %1").arg(payload.size());
 
         QJsonParseError err;
         QJsonDocument doc = QJsonDocument::fromJson(jsonData, &err);

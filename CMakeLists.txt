@@ -41,7 +41,8 @@ qt_add_qml_module(QMLWalkieTalkie
         components/Toast.qml
     SOURCES
         audiobackend.h audiobackend.cpp
-        packetStructs.h
+        #packetStructs.h
+        ../../QtLibraries/packetStructs.hpp
 )
 
 qt6_add_resources(QMLWalkieTalkie "qmlchartsgallery"

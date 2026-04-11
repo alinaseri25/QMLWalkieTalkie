@@ -14,7 +14,7 @@
 #include <QJsonParseError>
 #include <QTimer>
 
-#include <packetStructs.h>
+#include <../../QtLibraries/packetStructs.hpp>
 #include <version.h>
 
 #define BufferSize 3000
