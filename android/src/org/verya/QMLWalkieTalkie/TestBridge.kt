@@ -17,8 +17,8 @@ object TestBridge {
     }
 
     @JvmStatic
-    fun postNotification(ctx: Context, title: String, message: String,notifyId: Int) {
+    fun postNotification(ctx: Context, title: String, message: String,notifyId: Int,alert: Boolean) {
         val helper = NotificationHelper(ctx)
-        helper.show(title, message, notifyId)
+        helper.show(title, message, notifyId,alert)
     }
 }

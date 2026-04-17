@@ -145,18 +145,33 @@ ApplicationWindow {
                         border.color: appTheme.border
                         border.width: 1
 
-                        implicitHeight: messageText.implicitHeight + 16
+                        height: contentColumn.implicitHeight + 16
 
-                        Text {
-                            id: messageText
+                        Column {
+                            id: contentColumn
                             anchors.fill: parent
                             anchors.margins: 8
+                            spacing: 4
 
-                            text: model.message
-                            textFormat: Text.RichText
-                            wrapMode: Text.Wrap
-                            font.pixelSize: appTheme.fontSize.sm
-                            color: appTheme.textPrimary
+                            Text {
+                                id: messageFrom
+                                width: parent.width
+                                text: "from: " + model.from
+                                textFormat: Text.RichText
+                                wrapMode: Text.Wrap
+                                font.pixelSize: appTheme.fontSize.sm
+                                color: appTheme.textPrimary
+                            }
+
+                            Text {
+                                id: messageText
+                                width: parent.width
+                                text: "content: " + model.message
+                                textFormat: Text.RichText
+                                wrapMode: Text.Wrap
+                                font.pixelSize: appTheme.fontSize.sm
+                                color: appTheme.textPrimary
+                            }
                         }
                     }
                 }
@@ -307,8 +322,8 @@ ApplicationWindow {
             reportToast.showMessage(false,"New Version founded\r\nVersion : " + _versionCode)
         }
 
-        function onNewTextMessage(_msg){
-            chatModel.insert(0,{message: _msg})
+        function onNewTextMessage(_msg,_frm){
+            chatModel.insert(0,{message: _msg,from: _frm})
         }
 
         function onDebugMessage(_state,_msg){

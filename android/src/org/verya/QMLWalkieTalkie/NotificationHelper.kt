@@ -36,7 +36,7 @@ class NotificationHelper(private val context: Context) {
     /**
      * نمایش اعلان با دکمه‌ی اکشن (کلیک آن به JNI → C++ Callback می‌رود)
      */
-    fun show(title: String, message: String,notifyId: Int) {
+    fun show(title: String, message: String,notifyId: Int,alert: Boolean) {
         // Intent و PendingIntent برای action (BroadcastReceiver)
         // STOP button
         val stopIntent = Intent(context, NotificationReceiver::class.java).apply {
@@ -82,7 +82,7 @@ class NotificationHelper(private val context: Context) {
             // دکمه اکشن که BroadcastReceiver را فعال می‌کند
             .addAction(android.R.drawable.ic_input_add, "STOP", stopPending)
             .addAction(android.R.drawable.ic_input_add, "START", startPending)
-            .setOnlyAlertOnce(true)
+            .setOnlyAlertOnce(!alert)
 
         // ارسال نوتیفیکیشن
         NotificationManagerCompat.from(context).notify(

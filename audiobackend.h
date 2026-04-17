@@ -45,7 +45,7 @@ signals:
     void devicesChanged();
     void newVersionFound(uint32_t versionCode);
     void debugMessage(bool _state,const QString &_message);
-    void newTextMessage(QString _msg);
+    void newTextMessage(QString _msg,QString _frm);
 
 public slots:
     void onSettingapplied(int myId,int sendToId,int inputDeviceIndex,int outputDeviceIndex,int outputBufferSize);
@@ -54,9 +54,8 @@ public slots:
     void onSendMessage(QString _msg);
 
 private:
-    void acquireMulticastLock(void);
     void refreshAudioDevices(void);
-    void updateNotification(QString Tittle,QString Text);
+    void updateNotification(QString Tittle,QString Text, bool alert = false);
     void makeUDPserver(void);
     void initializeAudio(void);
     void createAudioInput(void);

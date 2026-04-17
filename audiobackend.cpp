@@ -46,7 +46,6 @@ AudioBackend::AudioBackend(QObject *parent)
 
     latestVersion = VERSION_CODE;
 
-    acquireMulticastLock();
     makeUDPserver();
     g_mainWindowInstance = this;
 
@@ -67,6 +66,27 @@ AudioBackend::AudioBackend(QObject *parent)
         "(Ljava/lang/String;)V",
         jMsg.object<jstring>()
         );
+
+    QJniObject context = QNativeInterface::QAndroidApplication::context();
+    if (!context.isValid())
+        return;
+
+    QJniObject::callStaticMethod<void>(
+        "org/verya/QMLWalkieTalkie/MainActivity",
+        "manageScreenAndWakeLock",
+        "(Landroid/content/Context;ZZ)V",
+        context.object(),
+        (jboolean)true,  // screenAlwaysOn
+        (jboolean)true    // wakeLock
+        );
+
+    QJniObject::callStaticMethod<void>(
+        "org/verya/QMLWalkieTalkie/MainActivity",
+        "setDimTimeoutFromQt",
+        "(J)V",
+        10000
+        );
+
 #endif
 }
 
@@ -169,57 +189,7 @@ void AudioBackend::onSendMessage(QString _msg)
     _buffer.append(doc.toJson(QJsonDocument::Compact));
     _buffer.append(payload);
     Client->writeDatagram(_buffer,multicastAddress,PortNumber);
-    emit newTextMessage(QString("<p style=\"color: green;\">%1</p>").arg(_msg));
-}
-
-void AudioBackend::acquireMulticastLock()
-{
-#ifdef Q_OS_ANDROID
-    QJniObject context = QNativeInterface::QAndroidApplication::context();
-    if (!context.isValid())
-        return;
-
-    QJniObject wifiManager = context.callObjectMethod(
-        "getSystemService",
-        "(Ljava/lang/String;)Ljava/lang/Object;",
-        QJniObject::fromString("wifi").object<jstring>()
-        );
-
-    // wifi lock
-    g_wifiLock = wifiManager.callObjectMethod(
-        "createWifiLock",
-        "(ILjava/lang/String;)Landroid/net/wifi/WifiManager$WifiLock;",
-        3, QJniObject::fromString("MyWifiLock").object<jstring>()
-        );
-    g_wifiLock.callMethod<void>("acquire");
-
-    // multicast lock
-    g_multicastLock = wifiManager.callObjectMethod(
-        "createMulticastLock",
-        "(Ljava/lang/String;)Landroid/net/wifi/WifiManager$MulticastLock;",
-        QJniObject::fromString("MyUdpLock").object<jstring>()
-        );
-    g_multicastLock.callMethod<void>("acquire");
-
-    // wake lock
-    QJniObject pm = context.callObjectMethod(
-        "getSystemService",
-        "(Ljava/lang/String;)Ljava/lang/Object;",
-        QJniObject::fromString("power").object<jstring>()
-        );
-    g_wakeLock = pm.callObjectMethod(
-        "newWakeLock",
-        "(ILjava/lang/String;)Landroid/os/PowerManager$WakeLock;",
-        1, QJniObject::fromString("MyWakeLock").object<jstring>()
-        );
-    g_wakeLock.callMethod<void>("acquire");
-
-    // QJniObject activity = QNativeInterface::QAndroidApplication::context();
-    // activity.callMethod<void>("requestPermissions",
-    //                           "([Ljava/lang/String;I)V",
-    //                           QJniObject::fromString("android.permission.RECORD_AUDIO").object<jstring>(),
-    //                           100);
-#endif
+    emit newTextMessage(QString("<p style=\"color: green;\">%1</p>").arg(_msg),QString("me"));
 }
 
 void AudioBackend::refreshAudioDevices()
@@ -238,7 +208,7 @@ void AudioBackend::refreshAudioDevices()
     emit devicesChanged();
 }
 
-void AudioBackend::updateNotification(QString Tittle, QString Text)
+void AudioBackend::updateNotification(QString Tittle, QString Text, bool alert)
 {
 #ifdef Q_OS_ANDROID
     QJniObject context = QNativeInterface::QAndroidApplication::context();
@@ -252,11 +222,12 @@ void AudioBackend::updateNotification(QString Tittle, QString Text)
     QJniObject::callStaticMethod<void>(
         cls,
         "postNotification",
-        "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;I)V",
+        "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;IZ)V",
         context.object(),
         jTitle.object<jstring>(),
         jMsg.object<jstring>(),
-        notifyId);
+        notifyId,
+        alert);
 #endif
 }
 
@@ -548,7 +519,8 @@ void AudioBackend::onProcessPacketsTimerTimeout()
             }
             else if(obj["type"].toInt(0) == TextMessage)
             {
-                emit newTextMessage(QString("<p style=\"color: white;\">%1</p>").arg(obj["msg"].toString("")));
+                emit newTextMessage(QString("<p style=\"color: white;\">%1</p>").arg(obj["msg"].toString("")),obj["senderID"].toString("0"));
+                updateNotification(QString("QMLWalkieTalkie"),QString("from : %1\r\ncontent: %2").arg(obj["senderID"].toString("0")).arg(obj["msg"].toString("")),true);
             }
         }
         else

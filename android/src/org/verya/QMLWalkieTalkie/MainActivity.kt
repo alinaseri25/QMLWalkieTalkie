@@ -10,8 +10,18 @@ import android.view.WindowManager
 import org.qtproject.qt.android.bindings.QtActivity
 import android.content.Context
 import android.media.AudioManager
+import android.os.PowerManager
+import android.view.ViewGroup
+import android.os.Handler
+import android.os.Looper
+import android.view.MotionEvent
 
 class MainActivity : QtActivity() {
+
+    private lateinit var rootView: View
+    private val handler = Handler(Looper.getMainLooper())
+    private var screenDimmed = false
+    private var dimTimeoutMs: Long = 0L
 
     companion object {
         private var audioManager: AudioManager? = null
@@ -29,11 +39,86 @@ class MainActivity : QtActivity() {
             audioManager?.mode = previousMode
             audioManager = null
         }
+
+        private var wakeLockInstance: PowerManager.WakeLock? = null
+        private var instance: MainActivity? = null
+
+        fun getInstance(): MainActivity? = instance
+
+        @JvmStatic
+        fun manageScreenAndWakeLock(context: Context, screenAlwaysOn: Boolean, wakeLock: Boolean) {
+            val activity = instance ?: return
+            // Log.d("Log","manageScreenAndWakeLock started")
+            activity.screenAndWakeLock(context,screenAlwaysOn,wakeLock)
+        }
+
+        @JvmStatic
+        fun setDimTimeoutFromQt(valueMs: Long) {
+            val activity = instance ?: return
+            activity.setDimTimeoutInternal(valueMs)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        instance = this
+
+        rootView = window.decorView
+        if(dimTimeoutMs > 0){
+            startDimTimer()
+        }
+
         hideSystemUI()
+    }
+
+    private fun startDimTimer() {
+        // هر تایمر قبلی را لغو کن
+        handler.removeCallbacksAndMessages(null)
+        handler.postDelayed({
+            dimScreen()
+        }, dimTimeoutMs)
+    }
+
+    fun setDimTimeoutInternal(valueMs: Long) {
+        dimTimeoutMs = valueMs
+
+        if (valueMs <= 0) {
+            // یعنی غیر فعالش کن
+            handler.removeCallbacksAndMessages(null)
+            brightenScreen()
+            return
+        }
+
+        // اگر فعال است، تایمر جدید را دوباره شروع کن
+        startDimTimer()
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        if (ev?.action == MotionEvent.ACTION_DOWN) {
+            if (screenDimmed) {
+                brightenScreen()
+            }
+            if (dimTimeoutMs > 0) {
+                startDimTimer()
+            }
+        }
+        return super.dispatchTouchEvent(ev)
+    }
+
+    private fun dimScreen() {
+        if (screenDimmed) return
+        val params = window.attributes
+        params.screenBrightness = 0.0f    // تقریبا صفحه خاموش
+        window.attributes = params
+        screenDimmed = true
+    }
+
+    private fun brightenScreen() {
+        val params = window.attributes
+        // می‌توانی مقدار را از سیستم بگیری، ولی اینجا فول روشنایی می‌گذاریم
+        params.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
+        window.attributes = params
+        screenDimmed = false
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -71,6 +156,45 @@ class MainActivity : QtActivity() {
         }
 
         // Keep screen on (اختیاری - صفحه خاموش نشه)
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
+
+    fun screenAndWakeLock(context: Context, screenAlwaysOn: Boolean, wakeLock: Boolean)
+    {
+        //Log.d("Log","screenAndWakeLock started")
+        // مدیریت FLAG_KEEP_SCREEN_ON
+        runOnUiThread {
+            if (screenAlwaysOn) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                //Log.d("Log", "screenAndWakeLock Screen Always On")
+            } else {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                //Log.d("Log", "screenAndWakeLock Screen Normal")
+            }
+        }
+
+        // مدیریت PARTIAL_WAKE_LOCK
+        if (wakeLock) {
+            if (wakeLockInstance == null || wakeLockInstance?.isHeld == false) {
+                val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+                wakeLockInstance = powerManager.newWakeLock(
+                    PowerManager.PARTIAL_WAKE_LOCK,
+                    "QMLWalkieTalkie::WakeLock"
+                )
+                wakeLockInstance?.acquire(5 * 60 * 1000L) // 5 دقیقه
+            }
+        } else {
+            if (wakeLockInstance?.isHeld == true) {
+                wakeLockInstance?.release()
+            }
+            wakeLockInstance = null
+        }
+    }
+
+    override fun onDestroy() {
+        if (instance === this) instance = null
+            handler.removeCallbacksAndMessages(null)
+        super.onDestroy()
+    }
+
 }
