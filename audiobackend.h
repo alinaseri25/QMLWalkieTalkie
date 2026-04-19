@@ -38,20 +38,22 @@ public:
 
     QAbstractItemModel* inputDevicesModel();
     QAbstractItemModel* outputDevicesModel();
-    void showMessageBox(QString message);
+    void showMessageBox(const QString &message);
 
 signals:
-    void setWindowsTittle(QString Tittle);
+    void setWindowsTittle(const QString &Tittle);
     void devicesChanged();
     void newVersionFound(uint32_t versionCode);
     void debugMessage(bool _state,const QString &_message);
-    void newTextMessage(QString _msg,QString _frm);
+    void newTextMessage(const QString &_msg,const QString &_frm);
+    void setUUID(const QString &UUID);
 
 public slots:
     void onSettingapplied(int myId,int sendToId,int inputDeviceIndex,int outputDeviceIndex,int outputBufferSize);
     void onStartSend();
     void onStopSend();
     void onSendMessage(QString _msg);
+    void onQmlLoaded(void);
 
 private:
     void refreshAudioDevices(void);
@@ -61,6 +63,7 @@ private:
     void createAudioInput(void);
     void createAudioOutput(void);
     void processBuffer(void);
+    QString getOrCreatePersistentId(void);
 
     QByteArray buffer;
     QList<QByteArray> packets;
@@ -87,7 +90,7 @@ private:
     QIODevice *m_input = nullptr;
     QIODevice *m_output = nullptr;
 
-    uint64_t CurrentID;
+    QString CurrentID;
 
 #ifdef Q_OS_ANDROID
     QJniObject g_wifiLock;

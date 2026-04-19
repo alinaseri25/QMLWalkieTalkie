@@ -30,6 +30,7 @@ ApplicationWindow {
     )
     signal startSend()
     signal stopSend()
+    signal qmlLoaded()
 
     signal sendMessage(string msg)
 
@@ -282,6 +283,7 @@ ApplicationWindow {
         contentItem: SettingsPage {
             anchors.fill: parent
             theme: appTheme
+            backend: audioBackend
 
             onCancelClicked: {
                 settingsDialog.close()
@@ -304,13 +306,6 @@ ApplicationWindow {
         themeManager: appTheme
     }
 
-    Component.onCompleted: {
-        settingapplied.connect(audioBackend.onSettingapplied)
-        startSend.connect(audioBackend.onStartSend)
-        stopSend.connect(audioBackend.onStopSend)
-        sendMessage.connect(audioBackend.onSendMessage)
-    }
-
     Connections {
         target: audioBackend
 
@@ -329,5 +324,15 @@ ApplicationWindow {
         function onDebugMessage(_state,_msg){
             reportToast.showMessage(_state,_msg)
         }
+    }
+
+    Component.onCompleted: {
+        settingapplied.connect(audioBackend.onSettingapplied)
+        startSend.connect(audioBackend.onStartSend)
+        stopSend.connect(audioBackend.onStopSend)
+        sendMessage.connect(audioBackend.onSendMessage)
+        qmlLoaded.connect(audioBackend.onQmlLoaded)
+
+        qmlLoaded()
     }
 }

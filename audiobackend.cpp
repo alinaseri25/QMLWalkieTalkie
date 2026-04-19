@@ -37,7 +37,7 @@ AudioBackend::AudioBackend(QObject *parent)
     : QObject{parent}
 {
     qWarning() << QString("app version : %1").arg(VERSION_STRING);
-    CurrentID = QDateTime::currentMSecsSinceEpoch();
+    CurrentID = getOrCreatePersistentId();
     _myId = 1;
     _sendToId = 255;
     _inputDeviceIndex = 0;
@@ -100,7 +100,7 @@ QAbstractItemModel *AudioBackend::outputDevicesModel()
     return &m_outputDevices;
 }
 
-void AudioBackend::showMessageBox(QString message)
+void AudioBackend::showMessageBox(const QString &message)
 {
     qDebug() << message;
 }
@@ -175,7 +175,7 @@ void AudioBackend::onSendMessage(QString _msg)
     QByteArray _buffer,payload;
     QJsonObject header;
     header["type"] = TextMessage;
-    header["senderID"] = QString::number(CurrentID);
+    header["senderID"] = CurrentID;
     header["senderGP"] = QString::number(_myId);
     header["recipientID"] = QString::number(255);
     header["recipientGP"] = QString::number(_sendToId);
@@ -190,6 +190,11 @@ void AudioBackend::onSendMessage(QString _msg)
     _buffer.append(payload);
     Client->writeDatagram(_buffer,multicastAddress,PortNumber);
     emit newTextMessage(QString("<p style=\"color: green;\">%1</p>").arg(_msg),QString("me"));
+}
+
+void AudioBackend::onQmlLoaded()
+{
+    emit setUUID(CurrentID);
 }
 
 void AudioBackend::refreshAudioDevices()
@@ -389,6 +394,22 @@ void AudioBackend::processBuffer()
     }
 }
 
+QString AudioBackend::getOrCreatePersistentId()
+{
+    QSettings settings("Verya", "QMLWalkieTalkie");
+
+    // اگر قبلاً ساخته شده بود، همان را برگردان
+    if (settings.contains("device/uuid")) {
+        return settings.value("device/uuid").toString();
+    }
+
+    // اولین بار → بساز و ذخیره کن
+    const QString newId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    settings.setValue("device/uuid", newId);
+
+    return newId;
+}
+
 void AudioBackend::onUDPReadyRead()
 {
     if(buffer.size() >= maxBufferSize)
@@ -424,7 +445,7 @@ void AudioBackend::onReadInput()
         QByteArray _buffer,payload = m_input->read(_bufferSize);
         QJsonObject header;
         header["type"] = AudioMessage;
-        header["senderID"] = QString::number(CurrentID);
+        header["senderID"] = CurrentID;
         header["senderGP"] = QString::number(_myId);
         header["recipientID"] = QString::number(255);
         header["recipientGP"] = QString::number(_sendToId);
@@ -472,7 +493,7 @@ void AudioBackend::onProcessPacketsTimerTimeout()
 
         QJsonObject obj = doc.object();
 
-        if(obj["senderID"].toString("0").toULongLong() == CurrentID)
+        if(obj["senderID"].toString("0") == CurrentID)
         {
             return;
         }

@@ -11,6 +11,8 @@ Item {
 
     required property var theme
 
+    required property var backend
+
     // ===== State =====
     property int myId: 1
     property int sendToId: 255
@@ -50,25 +52,6 @@ Item {
                         color: theme.textPrimary
                         Layout.fillWidth: true
                     }
-
-                    // CButton {
-                    //     text: "✕"
-                    //     theme: root.theme
-                    //     Layout.fillWidth: true
-                    //     onClicked: root.cancelClicked()
-
-                    //     // contentItem: Item {
-                    //     //     anchors.fill: parent
-
-                    //     //     Text {
-                    //     //         text: "✕"
-                    //     //         anchors.centerIn: parent
-                    //     //         font.pixelSize: theme.fontSize.md
-                    //     //         color: theme.textPrimary
-                    //     //     }
-                    //     // }
-                    // }
-
                 }
             }
 
@@ -78,6 +61,22 @@ Item {
                 Layout.fillHeight: true
                 Layout.margins: theme.spacing.md
                 spacing: theme.spacing.md
+
+                ColumnLayout {
+                    spacing: theme.spacing.xs
+                    Text {
+                        text: "UUID : "
+                        color: theme.textSecondary
+                        font.pixelSize: theme.fontSize.xs
+                    }
+
+                    Text {
+                        id: txtUUID
+                        text: "---"
+                        color: theme.textSecondary
+                        font.pixelSize: theme.fontSize.xs
+                    }
+                }
 
                 // Audio Input
                 ColumnLayout {
@@ -247,6 +246,14 @@ Item {
                     }
                 }
             }
+        }
+    }
+
+    Connections{
+        target: backend
+
+        function onSetUUID(UUID){
+            txtUUID.text = UUID
         }
     }
 }
