@@ -64,6 +64,7 @@ private:
     void createAudioOutput(void);
     void processBuffer(void);
     QString getOrCreatePersistentId(void);
+    void askForPermission(const QStringList &permissions, int requestCode);
 
     QByteArray buffer;
     QList<QByteArray> packets;

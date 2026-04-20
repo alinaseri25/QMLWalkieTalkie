@@ -31,6 +31,37 @@ extern "C"
         g_mainWindowInstance->showMessageBox(QStringLiteral("Action pressed"));
     }, Qt::QueuedConnection);
 }
+
+extern "C"
+    JNIEXPORT void JNICALL
+        Java_org_verya_QMLWalkieTalkie_TestBridge_nativeOnPermissionResult
+    (JNIEnv *env, jclass /*clazz*/, jstring msg)
+{
+    if (!g_mainWindowInstance)
+        return;
+
+    // تبدیل jstring به QString در همان thread JNI
+    QString jsonStr = QJniObject(msg).toString();
+
+    QJsonDocument doc = QJsonDocument::fromJson(jsonStr.toUtf8());
+    QJsonObject root = doc.object();
+    QJsonArray perms = root["results"].toArray();
+
+    for (const QJsonValue &v : perms) {
+        QJsonObject o = v.toObject();
+        QString permission = o["permission"].toString();
+        bool granted = o["granted"].toBool();
+        qDebug() << permission << (granted ? "✅" : "❌");
+    }
+
+    // QMetaObject::invokeMethod(g_mainWindowInstance, [=]() {
+    //     QString str = (qMsg == "start") ? "Play" : "Pause";
+
+    //     qDebug() << "str:" << str << "--msg:" << qMsg;
+
+    //     g_mainWindowInstance->onPlayPause(str);
+    // }, Qt::QueuedConnection);
+}
 #endif
 
 AudioBackend::AudioBackend(QObject *parent)
@@ -194,6 +225,8 @@ void AudioBackend::onSendMessage(QString _msg)
 
 void AudioBackend::onQmlLoaded()
 {
+    QStringList permissions = {"android.permission.POST_NOTIFICATIONS","android.permission.RECORD_AUDIO"};
+    askForPermission(permissions,125);
     emit setUUID(CurrentID);
 }
 
@@ -408,6 +441,28 @@ QString AudioBackend::getOrCreatePersistentId()
     settings.setValue("device/uuid", newId);
 
     return newId;
+}
+
+void AudioBackend::askForPermission(const QStringList &permissions, int requestCode)
+{
+#ifdef ANDROID
+    QJniEnvironment env;
+    jobjectArray jPerms = env->NewObjectArray(permissions.size(),
+                                              env->FindClass("java/lang/String"),
+                                              nullptr);
+
+    for (int i = 0; i < permissions.size(); ++i)
+        env->SetObjectArrayElement(jPerms, i,
+                                   QJniObject::fromString(permissions[i]).object<jstring>());
+
+    QJniObject::callStaticMethod<void>(
+        "org/verya/QMLWalkieTalkie/MainActivity",
+        "requestAppPermissions",
+        "([Ljava/lang/String;I)V",
+        jPerms,
+        requestCode
+        );
+#endif
 }
 
 void AudioBackend::onUDPReadyRead()

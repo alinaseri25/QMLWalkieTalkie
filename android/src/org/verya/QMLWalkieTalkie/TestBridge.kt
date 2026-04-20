@@ -11,6 +11,9 @@ object TestBridge {
     external fun nativeOnNotificationAction(msg: String)
 
     @JvmStatic
+    external fun nativeOnPermissionResult(msg: String)
+
+    @JvmStatic
     fun notifyCPlusPlus(msg: String) {
         //Log.d("123654", "123654notifyCPlusPlus: $msg")
         onMessageFromKotlin(msg)

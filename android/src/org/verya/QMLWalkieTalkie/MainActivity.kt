@@ -15,6 +15,9 @@ import android.view.ViewGroup
 import android.os.Handler
 import android.os.Looper
 import android.view.MotionEvent
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import org.json.JSONObject
 
 class MainActivity : QtActivity() {
 
@@ -56,6 +59,17 @@ class MainActivity : QtActivity() {
         fun setDimTimeoutFromQt(valueMs: Long) {
             val activity = instance ?: return
             activity.setDimTimeoutInternal(valueMs)
+        }
+
+        @JvmStatic
+        fun requestAppPermissions(permissions: Array<String>, requestCode: Int) {
+            instance?.let { activity ->
+                ActivityCompat.requestPermissions(
+                    activity,
+                    permissions,
+                    requestCode
+                )
+            }
         }
     }
 
@@ -195,6 +209,33 @@ class MainActivity : QtActivity() {
         if (instance === this) instance = null
             handler.removeCallbacksAndMessages(null)
         super.onDestroy()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    )
+    {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        val jsonPermissions = org.json.JSONArray()
+
+        for (i in permissions.indices) {
+            val permObj = org.json.JSONObject().apply {
+                put("permission", permissions[i])
+                put("granted", grantResults[i] == PackageManager.PERMISSION_GRANTED)
+            }
+            jsonPermissions.put(permObj)
+        }
+
+        // ساخت نتیجه نهایی
+        val jsonResult = org.json.JSONObject().apply {
+            put("requestCode", requestCode)
+            put("results", jsonPermissions)
+        }
+
+        TestBridge.nativeOnPermissionResult(jsonResult.toString())
     }
 
 }
