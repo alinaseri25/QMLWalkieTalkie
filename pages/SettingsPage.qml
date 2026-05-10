@@ -228,6 +228,7 @@ Item {
                             text: "Cancel"
                             theme: root.theme
                             Layout.fillWidth: true
+                            backgroundColor: root.theme.surfaceAlt
                             onClicked: root.cancelClicked()
                         }
 
@@ -235,6 +236,7 @@ Item {
                             text: "Apply"
                             theme: root.theme
                             Layout.fillWidth: true
+                            backgroundColor: root.theme.surfaceAlt
                             onClicked: root.applyClicked(
                                 myId,
                                 sendToId,

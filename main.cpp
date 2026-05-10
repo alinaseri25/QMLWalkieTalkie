@@ -3,10 +3,13 @@
 #include <QQmlContext>
 #include <audiobackend.h>
 #include <QQuickStyle>
+#include <version.h>
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+
+    app.setApplicationVersion(VERSION_STRING);
 
     AudioBackend *audioBackend = new AudioBackend(nullptr);
 

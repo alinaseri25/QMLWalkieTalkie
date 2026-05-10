@@ -1,4 +1,8 @@
 import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+
+import "../theme"
 
 Rectangle {
     id: root
@@ -20,6 +24,34 @@ Rectangle {
     }
 
     Rectangle {
+        width: 42
+        height: 42
+        radius: 42/2
+        anchors.right: settigPanel.left
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.rightMargin: theme.spacing.sm
+        color: root.theme.surfaceAlt
+
+        CButton {
+            id: showAbout
+            theme: root.theme
+
+            text: "i"
+            implicitWidth: 42
+            implicitHeight: 42
+            radius: implicitHeight / 2
+
+            backgroundColor: root.theme.surfaceAlt
+            textColor: root.theme.textOnAccent
+
+            Layout.alignment: Qt.AlignVCenter
+
+            onClicked: aboutDialog.open()
+        }
+    }
+
+    Rectangle {
+        id: settigPanel
         width: 42
         height: 42
         radius: theme.radius.md

@@ -9,6 +9,9 @@ Rectangle {
 
     property alias text: label.text
 
+    property color backgroundColor: theme.accent
+    property color textColor: theme.textOnAccent
+
     signal clicked
 
     implicitWidth: 100
@@ -17,8 +20,8 @@ Rectangle {
     radius: theme.radius.md
 
     color: mouseArea.pressed
-           ? Qt.darker(theme.accent, 1.2)
-           : theme.accent
+           ? Qt.darker(backgroundColor, 1.2)
+           : backgroundColor
 
     opacity: enabled ? 1.0 : theme.disabledOpacity
 
@@ -29,7 +32,7 @@ Rectangle {
 
         anchors.centerIn: parent
 
-        color: theme.textOnAccent
+        color: textColor
 
         font.pixelSize: 15
         font.bold: true

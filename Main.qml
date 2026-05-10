@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import "components"
 import "theme"
+import "pages"
 
 ApplicationWindow {
     id: window
@@ -206,6 +207,7 @@ ApplicationWindow {
                     text: qsTr("ارسال")
                     width: 70
                     height: 60
+                    backgroundColor: appTheme.surfaceAlt
                     onClicked: {
                         if (messageInput.text.trim().length > 0) {
                             sendMessage(messageInput.text)
@@ -268,9 +270,6 @@ ApplicationWindow {
         width: 300
         height: 400
 
-        // ✅ حذف padding پیش‌فرض Dialog
-        padding: 0
-
         // ✅ background واقعی Dialog
         background: Rectangle {
             color: appTheme.surface
@@ -297,6 +296,42 @@ ApplicationWindow {
                     outputBufferSize
                 )
                 settingsDialog.close()
+            }
+        }
+    }
+
+    Dialog {
+        id: aboutDialog
+        modal: true
+        width: 350
+        height: 500
+        anchors.centerIn: Overlay.overlay
+        //padding: 5
+
+        background: Rectangle {
+            color: appTheme.surface
+            radius: appTheme.radius.md
+            border.color: appTheme.border
+            border.width: 1
+        }
+
+        AboutDialog {
+            anchors.fill: parent
+            theme: appTheme
+
+            appName: "Walkie Talkie"
+            appVersion: Qt.application.version
+            appBuildDate: "2026-04-01"
+            appDescription: "Industrial robot monitoring and control software."
+
+            companyName: "Verya-Co"
+            companyWebsite: "https://verya-co.ir/"
+            companyEmail: "ali.naseri@verya-co.ir"
+
+            logoSource: "qrc:/WalkieTalkie.png"
+
+            onCloseRequested: {
+                aboutDialog.close()
             }
         }
     }

@@ -35,6 +35,7 @@ qt_add_qml_module(QMLWalkieTalkie
         theme/Theme.qml
         components/WalkieHeader.qml
         pages/SettingsPage.qml
+        pages/AboutDialog.qml
         components/CButton.qml
         components/CCard.qml
         components/CTextField.qml
@@ -49,6 +50,7 @@ qt6_add_resources(QMLWalkieTalkie "qmlchartsgallery"
     PREFIX "/"
     FILES
         version.txt
+        WalkieTalkie.png
 )
 
 if(ANDROID)
