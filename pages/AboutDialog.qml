@@ -111,7 +111,7 @@ Item {
                                 visible: root.companyName !== ""
 
                                 Text {
-                                    text: qsTr("Company Name:")
+                                    text: theme.isRTL ? qsTr("شرکت: ") : qsTr("Company Name:")
                                     font.pixelSize: theme.fontSize.md
                                     color: theme.textPrimary
                                     Layout.preferredWidth: 110
@@ -132,7 +132,7 @@ Item {
                                 visible: root.companyWebsite !== ""
 
                                 Text {
-                                    text: qsTr("Website:")
+                                    text: theme.isRTL ? qsTr("وبسایت: ") : qsTr("Website:")
                                     font.pixelSize: theme.fontSize.md
                                     color: theme.textPrimary
                                     Layout.preferredWidth: 110
@@ -144,6 +144,17 @@ Item {
                                     color: theme.textSecondary
                                     Layout.fillWidth: true
                                     wrapMode: Text.Wrap
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            Qt.openUrlExternally(
+                                                root.companyWebsite.startsWith("http")
+                                                    ? root.companyWebsite
+                                                    : "https://" + root.companyWebsite
+                                            )
+                                        }
+                                    }
                                 }
                             }
 
@@ -153,7 +164,7 @@ Item {
                                 visible: root.companyEmail !== ""
 
                                 Text {
-                                    text: qsTr("Email:")
+                                    text: theme.isRTL ? qsTr("پست الکترونیک: ") : qsTr("Email:")
                                     font.pixelSize: theme.fontSize.md
                                     color: theme.textPrimary
                                     Layout.preferredWidth: 110
@@ -165,6 +176,13 @@ Item {
                                     color: theme.textSecondary
                                     Layout.fillWidth: true
                                     wrapMode: Text.Wrap
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            Qt.openUrlExternally("mailto:" + root.companyEmail)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -198,7 +216,7 @@ Item {
                                 spacing: theme.spacing.sm
 
                                 Text {
-                                    text: qsTr("Version:")
+                                    text: theme.isRTL ? qsTr("نسخه: ") : qsTr("Version:")
                                     font.pixelSize: theme.fontSize.md
                                     color: theme.textPrimary
                                     Layout.preferredWidth: 110
@@ -217,7 +235,7 @@ Item {
                                 spacing: theme.spacing.sm
 
                                 Text {
-                                    text: qsTr("Build Date:")
+                                    text: theme.isRTL ? qsTr("تاریخ تولید: ") : qsTr("Build Date:")
                                     font.pixelSize: theme.fontSize.md
                                     color: theme.textPrimary
                                     Layout.preferredWidth: 110
@@ -275,7 +293,7 @@ Item {
                     Item { Layout.fillWidth: true }
 
                     CButton {
-                        text: qsTr("Close")
+                        text: theme.isRTL ? qsTr("بستن") : qsTr("Close")
                         theme: root.theme
                         backgroundColor: root.theme.surfaceAlt
                         onClicked: root.closeRequested()
