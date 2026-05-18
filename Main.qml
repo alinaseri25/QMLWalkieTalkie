@@ -14,6 +14,9 @@ ApplicationWindow {
 
     Theme { id: appTheme }
 
+    LayoutMirroring.enabled: appTheme.isRTL
+    LayoutMirroring.childrenInherit: true
+
     ListModel {
         id: chatModel
     }
@@ -78,7 +81,7 @@ ApplicationWindow {
 
             Text {
                 anchors.centerIn: parent
-                text: transmitting ? "TRANSMITTING" : "PUSH TO TALK"
+                text: transmitting ? "در حال ارسال" : "برای مکالمه بفشارید"
                 color: transmitting ? "white" : "black"
                 font.pixelSize: appTheme.fontSize.sm
                 font.bold: true
@@ -158,7 +161,7 @@ ApplicationWindow {
                             Text {
                                 id: messageFrom
                                 width: parent.width
-                                text: "from: " + model.from
+                                text: "فرستنده : " + model.from
                                 textFormat: Text.RichText
                                 wrapMode: Text.Wrap
                                 font.pixelSize: appTheme.fontSize.sm
@@ -168,7 +171,7 @@ ApplicationWindow {
                             Text {
                                 id: messageText
                                 width: parent.width
-                                text: "content: " + model.message
+                                text: "محتوای پیام: \r\n" + model.message
                                 textFormat: Text.RichText
                                 wrapMode: Text.Wrap
                                 font.pixelSize: appTheme.fontSize.sm
@@ -234,7 +237,7 @@ ApplicationWindow {
             anchors.margins: appTheme.spacing.sm
 
             Text {
-                text: "Hands‑Free"
+                text: "همیشه در حال ارسال"
                 Layout.fillWidth: true
                 color: appTheme.textPrimary
             }

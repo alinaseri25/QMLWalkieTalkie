@@ -46,7 +46,7 @@ Item {
                     anchors.margins: theme.spacing.sm
 
                     Text {
-                        text: "Settings"
+                        text: "تنظیمات"
                         font.pixelSize: theme.fontSize.md
                         font.bold: true
                         color: theme.textPrimary
@@ -65,7 +65,7 @@ Item {
                 ColumnLayout {
                     spacing: theme.spacing.xs
                     Text {
-                        text: "UUID : "
+                        text: "شماره منحصر به فرد شما : "
                         color: theme.textSecondary
                         font.pixelSize: theme.fontSize.xs
                     }
@@ -82,7 +82,7 @@ Item {
                 ColumnLayout {
                     spacing: theme.spacing.xs
                     Text {
-                        text: "Audio Input Source"
+                        text: "منبع صوت ورودی"
                         color: theme.textSecondary
                         font.pixelSize: theme.fontSize.xs
                     }
@@ -111,7 +111,7 @@ Item {
                 ColumnLayout {
                     spacing: theme.spacing.xs
                     Text {
-                        text: "Audio Output Device"
+                        text: "منبع صوت خروجی"
                         color: theme.textSecondary
                         font.pixelSize: theme.fontSize.xs
                     }
@@ -140,7 +140,7 @@ Item {
                 ColumnLayout {
                     spacing: theme.spacing.xs
                     Text {
-                        text: "My ID"
+                        text: "گروه شما"
                         color: theme.textSecondary
                         font.pixelSize: theme.fontSize.xs
                     }
@@ -157,7 +157,7 @@ Item {
                 ColumnLayout {
                     spacing: theme.spacing.xs
                     Text {
-                        text: "Send To ID"
+                        text: "گروه دریافت کننده (255 برای ارسال به همه)"
                         color: theme.textSecondary
                         font.pixelSize: theme.fontSize.xs
                     }
@@ -174,7 +174,7 @@ Item {
                 ColumnLayout {
                     spacing: theme.spacing.xs
                     Text {
-                        text: "Audio Output Buffer"
+                        text: "حجم بافر خروجی"
                         color: theme.textSecondary
                         font.pixelSize: theme.fontSize.xs
                     }
@@ -225,7 +225,7 @@ Item {
                         spacing: theme.spacing.sm
 
                         CButton {
-                            text: "Cancel"
+                            text: "رد کردن"
                             theme: root.theme
                             Layout.fillWidth: true
                             backgroundColor: root.theme.surfaceAlt
@@ -233,7 +233,7 @@ Item {
                         }
 
                         CButton {
-                            text: "Apply"
+                            text: "تایید"
                             theme: root.theme
                             Layout.fillWidth: true
                             backgroundColor: root.theme.surfaceAlt
