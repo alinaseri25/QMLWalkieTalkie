@@ -3,7 +3,7 @@ import QtQuick
 QtObject {
     // ===== Mode =====
     property bool isDarkMode: true
-    property bool isRTL: true
+    property bool isRTL: false
 
     readonly property int headerHeight: 48
 

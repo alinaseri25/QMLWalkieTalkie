@@ -46,6 +46,24 @@ ApplicationWindow {
     readonly property bool transmitting:
         handsFree ? handsFreeLatched : pttPressed
 
+    /* ========= LOCALIZATION ========= */
+    readonly property bool isRTL: appTheme.isRTL
+
+    readonly property string txtTransmitting: isRTL ? "در حال ارسال" : "Transmitting..."
+    readonly property string txtPressToTalk:  isRTL ? "برای مکالمه بفشارید" : "Press to Talk"
+
+    readonly property string txtSender:       isRTL ? "فرستنده: " : "Sender: "
+    readonly property string txtMsgContent:   isRTL ? "محتوای پیام: " : "Message: "
+
+    readonly property string txtInputPlaceholder: isRTL ? "پیام..." : "Message..."
+    readonly property string txtSend:             isRTL ? "ارسال" : "Send"
+
+    readonly property string txtAlwaysTransmitting: isRTL ? "همیشه در حال ارسال" : "Always Transmitting"
+
+    readonly property string txtNewVersionToast: isRTL ? "نسخه جدید یافت شد\nنسخه: " : "New Version found\nVersion: "
+
+
+
     /* ========= HEADER ========= */
     WalkieHeader {
         id: header
@@ -81,7 +99,7 @@ ApplicationWindow {
 
             Text {
                 anchors.centerIn: parent
-                text: transmitting ? "در حال ارسال" : "برای مکالمه بفشارید"
+                text: transmitting ? txtTransmitting : txtPressToTalk
                 color: transmitting ? "white" : "black"
                 font.pixelSize: appTheme.fontSize.sm
                 font.bold: true
@@ -161,7 +179,7 @@ ApplicationWindow {
                             Text {
                                 id: messageFrom
                                 width: parent.width
-                                text: "فرستنده : " + model.from
+                                text: txtSender + model.from
                                 textFormat: Text.RichText
                                 wrapMode: Text.Wrap
                                 font.pixelSize: appTheme.fontSize.sm
@@ -171,7 +189,7 @@ ApplicationWindow {
                             Text {
                                 id: messageText
                                 width: parent.width
-                                text: "محتوای پیام: \r\n" + model.message
+                                text: txtMsgContent + model.message
                                 textFormat: Text.RichText
                                 wrapMode: Text.Wrap
                                 font.pixelSize: appTheme.fontSize.sm
@@ -187,7 +205,6 @@ ApplicationWindow {
                 width: parent.width
                 spacing: 10
 
-
                 Rectangle {
                     width: parent.width - 80
                     height: 60
@@ -201,13 +218,13 @@ ApplicationWindow {
                         theme: appTheme
                         anchors.fill: parent
                         anchors.margins: 8
-                        placeholderText: qsTr("پیام...")
+                        placeholderText: txtInputPlaceholder
                     }
                 }
 
                 CButton {
                     theme: appTheme
-                    text: qsTr("ارسال")
+                    text: txtSend
                     width: 70
                     height: 60
                     backgroundColor: appTheme.surfaceAlt
@@ -237,7 +254,7 @@ ApplicationWindow {
             anchors.margins: appTheme.spacing.sm
 
             Text {
-                text: "همیشه در حال ارسال"
+                text: txtAlwaysTransmitting
                 Layout.fillWidth: true
                 color: appTheme.textPrimary
             }
@@ -309,7 +326,6 @@ ApplicationWindow {
         width: 350
         height: 500
         anchors.centerIn: Overlay.overlay
-        //padding: 5
 
         background: Rectangle {
             color: appTheme.surface
@@ -352,7 +368,7 @@ ApplicationWindow {
         }
 
         function onNewVersionFound(_versionCode){
-            reportToast.showMessage(false,"New Version founded\r\nVersion : " + _versionCode)
+            reportToast.showMessage(false, txtNewVersionToast + _versionCode)
         }
 
         function onNewTextMessage(_msg,_frm){
