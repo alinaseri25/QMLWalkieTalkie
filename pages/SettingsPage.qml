@@ -4,14 +4,25 @@ import QtQuick.Layouts
 
 import "../components"
 
-
 Item {
     id: root
     anchors.fill: parent
 
     required property var theme
-
     required property var backend
+
+    // ===== Localization Properties =====
+    readonly property bool isRTL: theme.isRTL
+
+    readonly property string txtSettings:       isRTL ? "تنظیمات" : "Settings"
+    readonly property string txtUUIDLabel:      isRTL ? "شماره منحصر به فرد شما : " : "Your Unique ID: "
+    readonly property string txtInputSource:    isRTL ? "منبع صوت ورودی" : "Audio Input Source"
+    readonly property string txtOutputSource:   isRTL ? "منبع صوت خروجی" : "Audio Output Source"
+    readonly property string txtYourGroup:      isRTL ? "گروه شما" : "Your Group"
+    readonly property string txtTargetGroup:    isRTL ? "گروه دریافت کننده (255 برای ارسال به همه)" : "Target Group (255 for Broadcast)"
+    readonly property string txtBufferSize:     isRTL ? "حجم بافر خروجی" : "Output Buffer Size"
+    readonly property string txtCancel:         isRTL ? "رد کردن" : "Cancel"
+    readonly property string txtApply:          isRTL ? "تایید" : "Apply"
 
     // ===== State =====
     property int myId: 1
@@ -46,11 +57,12 @@ Item {
                     anchors.margins: theme.spacing.sm
 
                     Text {
-                        text: "تنظیمات"
+                        text: txtSettings
                         font.pixelSize: theme.fontSize.md
                         font.bold: true
                         color: theme.textPrimary
                         Layout.fillWidth: true
+                        horizontalAlignment: isRTL ? Text.AlignRight : Text.AlignLeft
                     }
                 }
             }
@@ -65,7 +77,7 @@ Item {
                 ColumnLayout {
                     spacing: theme.spacing.xs
                     Text {
-                        text: "شماره منحصر به فرد شما : "
+                        text: txtUUIDLabel
                         color: theme.textSecondary
                         font.pixelSize: theme.fontSize.xs
                     }
@@ -82,7 +94,7 @@ Item {
                 ColumnLayout {
                     spacing: theme.spacing.xs
                     Text {
-                        text: "منبع صوت ورودی"
+                        text: txtInputSource
                         color: theme.textSecondary
                         font.pixelSize: theme.fontSize.xs
                     }
@@ -90,7 +102,6 @@ Item {
                         Layout.fillWidth: true
                         model: audioBackend.inputDevicesModel
 
-                        // اگر قبلاً چیزی انتخاب نشده
                         Component.onCompleted: ensureSelection()
                         onCountChanged: ensureSelection()
 
@@ -111,7 +122,7 @@ Item {
                 ColumnLayout {
                     spacing: theme.spacing.xs
                     Text {
-                        text: "منبع صوت خروجی"
+                        text: txtOutputSource
                         color: theme.textSecondary
                         font.pixelSize: theme.fontSize.xs
                     }
@@ -119,14 +130,14 @@ Item {
                         Layout.fillWidth: true
                         model: audioBackend.outputDevicesModel
 
-                        // اگر قبلاً چیزی انتخاب نشده
                         Component.onCompleted: ensureSelection()
                         onCountChanged: ensureSelection()
 
                         function ensureSelection() {
                             if (count > 0 && currentIndex === -1) {
                                 currentIndex = 0
-                                inputDeviceIndex = 0
+                                // باگ جزئی در کد اصلی شما: اینجا باید outputDeviceIndex مقداردهی میشد
+                                outputDeviceIndex = 0
                             }
                         }
 
@@ -140,7 +151,7 @@ Item {
                 ColumnLayout {
                     spacing: theme.spacing.xs
                     Text {
-                        text: "گروه شما"
+                        text: txtYourGroup
                         color: theme.textSecondary
                         font.pixelSize: theme.fontSize.xs
                     }
@@ -157,7 +168,7 @@ Item {
                 ColumnLayout {
                     spacing: theme.spacing.xs
                     Text {
-                        text: "گروه دریافت کننده (255 برای ارسال به همه)"
+                        text: txtTargetGroup
                         color: theme.textSecondary
                         font.pixelSize: theme.fontSize.xs
                     }
@@ -174,7 +185,7 @@ Item {
                 ColumnLayout {
                     spacing: theme.spacing.xs
                     Text {
-                        text: "حجم بافر خروجی"
+                        text: txtBufferSize
                         color: theme.textSecondary
                         font.pixelSize: theme.fontSize.xs
                     }
@@ -211,7 +222,6 @@ Item {
                     anchors.fill: parent
                     spacing: 0
 
-                    // شبیه border.top
                     Rectangle {
                         Layout.fillWidth: true
                         height: 1
@@ -225,7 +235,7 @@ Item {
                         spacing: theme.spacing.sm
 
                         CButton {
-                            text: "رد کردن"
+                            text: txtCancel
                             theme: root.theme
                             Layout.fillWidth: true
                             backgroundColor: root.theme.surfaceAlt
@@ -233,7 +243,7 @@ Item {
                         }
 
                         CButton {
-                            text: "تایید"
+                            text: txtApply
                             theme: root.theme
                             Layout.fillWidth: true
                             backgroundColor: root.theme.surfaceAlt
@@ -253,7 +263,6 @@ Item {
 
     Connections{
         target: backend
-
         function onSetUUID(UUID){
             txtUUID.text = UUID
         }
