@@ -1,25 +1,64 @@
 #ifndef AUDIOBACKEND_H
 #define AUDIOBACKEND_H
 
-#include <QObject>
-#include <QDebug>
-#include <QStringListModel>
-#include <QtMultimedia>
-#ifdef Q_OS_ANDROID
-    #include <QJniObject>
-#endif
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonParseError>
-#include <QTimer>
-
+// ---------- Project Headers ----------
 #include <../../QtLibraries/packetStructs.hpp>
 #include <version.h>
+
+// ---------- C++ Standard ----------
+#include <utility>
+
+// ---------- Qt Core ----------
+#include <QObject>
+#include <QMetaObject>
+#include <QTimer>
+#include <QDebug>
+
+#include <QString>
+#include <QStringList>
+#include <QByteArray>
+
+#include <QSettings>
+#include <QUuid>
+
+#include <QAbstractItemModel>
+#include <QStringListModel>
+
+// ---------- Qt JSON ----------
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QJsonParseError>
+
+// ---------- Qt Network ----------
+#include <QUdpSocket>
+#include <QHostAddress>
+
+// ---------- Qt Multimedia ----------
+#include <QAudio>
+#include <QAudioDevice>
+#include <QAudioFormat>
+#include <QAudioSource>
+#include <QAudioSink>
+#include <QMediaDevices>
+
+// ---------- Qt IO ----------
+#include <QIODevice>
+
+// ---------- Android / JNI ----------
+#ifdef Q_OS_ANDROID
+#include <jni.h>
+#include <QJniObject>
+#include <QJniEnvironment>
+#include <QCoreApplication>
+#include <QtCore/qnativeinterface.h>
+#endif
 
 #define BufferSize 3000
 #define PortNumber 1255
 #define maxBufferSize 100000
+
 
 class AudioBackend : public QObject
 {

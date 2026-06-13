@@ -233,11 +233,13 @@ void AudioBackend::onQmlLoaded()
 void AudioBackend::refreshAudioDevices()
 {
     QStringList inputs;
-    for (const auto &dev : QMediaDevices::audioInputs())
+    const auto inputDevices = QMediaDevices::audioInputs();
+    for (const auto &dev : std::as_const(inputDevices))
         inputs << dev.description();
 
     QStringList outputs;
-    for (const auto &dev : QMediaDevices::audioOutputs())
+    const auto outputDevices = QMediaDevices::audioOutputs();
+    for (const auto &dev : std::as_const(outputDevices))
         outputs << dev.description();
 
     m_inputDevices.setStringList(inputs);
@@ -596,7 +598,7 @@ void AudioBackend::onProcessPacketsTimerTimeout()
             else if(obj["type"].toInt(0) == TextMessage)
             {
                 emit newTextMessage(QString("<p style=\"color: white;\">%1</p>").arg(obj["msg"].toString("")),obj["senderID"].toString("0"));
-                updateNotification(QString("QMLWalkieTalkie"),QString("from : %1\r\ncontent: %2").arg(obj["senderID"].toString("0")).arg(obj["msg"].toString("")),true);
+                updateNotification(QString("QMLWalkieTalkie"),QString("from : %1\r\ncontent: %2").arg(obj["senderID"].toString("0"),obj["msg"].toString("")),true);
             }
         }
         else
