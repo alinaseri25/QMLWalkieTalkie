@@ -20,12 +20,17 @@ configure_file(version.h.in version.h @ONLY)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2 multimedia)
+find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2 Multimedia)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(QMLWalkieTalkie
     main.cpp
+)
+
+set_target_properties(QMLWalkieTalkie PROPERTIES
+    OUTPUT_NAME "qmlWalkieTalkie"
+    QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android"
 )
 
 qt_add_qml_module(QMLWalkieTalkie
