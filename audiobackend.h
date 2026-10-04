@@ -57,7 +57,6 @@
 
 #define BufferSize 3000
 #define PortNumber 1255
-#define maxBufferSize 100000
 
 
 class AudioBackend : public QObject

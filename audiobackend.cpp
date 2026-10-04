@@ -469,7 +469,7 @@ void AudioBackend::askForPermission(const QStringList &permissions, int requestC
 
 void AudioBackend::onUDPReadyRead()
 {
-    if(buffer.size() >= maxBufferSize)
+    if(buffer.size() >= MAX_PAYLOAD_SIZE)
     {
         buffer.clear();
         qWarning() << "Buffer overflow, cleared";
