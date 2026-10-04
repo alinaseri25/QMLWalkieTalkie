@@ -37,6 +37,7 @@ ApplicationWindow {
     signal qmlLoaded()
 
     signal sendMessage(string msg)
+    signal videoCallRequested()
 
     /* ========= STATE ========= */
     property bool handsFree: false
@@ -51,6 +52,7 @@ ApplicationWindow {
 
     readonly property string txtTransmitting: isRTL ? "در حال ارسال" : "Transmitting..."
     readonly property string txtPressToTalk:  isRTL ? "برای مکالمه بفشارید" : "Press to Talk"
+    readonly property string txtVideoCall: isRTL ? "تماس تصویری" : "Video Call"
 
     readonly property string txtSender:       isRTL ? "فرستنده: " : "Sender: "
     readonly property string txtMsgContent:   isRTL ? "محتوای پیام: " : "Message: "
@@ -130,6 +132,37 @@ ApplicationWindow {
                     if (handsFree)
                         handsFreeLatched = !handsFreeLatched
                 }
+            }
+        }
+
+        Rectangle {
+            id: videoCallButton
+            width: 52
+            height: 52
+            radius: width / 2
+            anchors.right: pttButton.left
+            anchors.rightMargin: appTheme.spacing.md
+            anchors.verticalCenter: pttButton.verticalCenter
+            color: videoCallMouseArea.pressed
+                ? Qt.darker(appTheme.accentGreen, 1.25)
+                : appTheme.accentGreen
+            border.color: appTheme.border
+            border.width: 1
+
+            Text {
+                anchors.centerIn: parent
+                text: "📹"
+                font.pixelSize: appTheme.fontSize.lg
+            }
+
+            ToolTip.visible: videoCallMouseArea.containsMouse
+            ToolTip.text: txtVideoCall
+
+            MouseArea {
+                id: videoCallMouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked: videoCallRequested()
             }
         }
 

@@ -22,6 +22,7 @@ QtObject {
     readonly property color error: "#ff4d4d"
     readonly property color accentOrange: "#FF9800"
     readonly property color accentRed: "#D32F2F"
+    readonly property color accentGreen: "#4CAF50"
 
     readonly property color border: "#2C2C2C"
     readonly property color hoverColor: "#2A2A2A"
